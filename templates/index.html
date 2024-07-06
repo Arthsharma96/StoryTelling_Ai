@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storytelling Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Storytelling Assistant</h1>
+        <form id="prompt-form">
+            <label for="prompt">Enter your story prompt:</label>
+            <textarea id="prompt" name="prompt" rows="4" required></textarea>
+            <button type="submit" id="generate-btn">Generate Story</button>
+   
+<button type="button" id="clear-btn">Clear Story</button>
+
+        </form>
+        <div id="generated-story" class="hidden">
+          
+            <div id="generated-text"></div>
+        </div>
+        <div id="loader" class="hidden">
+           
+            <img src="{{ url_for('static', filename='loading.gif') }}" alt="Loading..." width="80" height="80">
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+       
+$('#clear-btn').click(function() {
+    $('#generated-story').addClass('hidden');
+    $('#generated-text').empty();
+    $('#prompt').val(''); 
+});
+
+        $(document).ready(function() {
+            $('#prompt-form').submit(function(event) {
+                event.preventDefault();
+                var formData = $(this).serialize();
+                $('#generate-btn').prop('disabled', true); 
+                $('#loader').removeClass('hidden'); 
+                $.ajax({
+                    type: 'POST',
+                    url: '/generate',
+                    data: formData,
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            $('#generated-text').html('<p>' + response.generated_text + '</p>'); 
+                            $('#generated-story').removeClass('hidden');
+                        } else {
+                            showError();
+                        }
+                    },
+                    error: function() {
+                        showError();
+                    },
+                    complete: function() {
+                        $('#generate-btn').prop('disabled', false); 
+                        $('#loader').addClass('hidden'); 
+                    }
+                });
+            });
+        });
+
+        function showError() {
+            $('#loader').addClass('hidden'); 
+            $('#generated-story').removeClass('hidden');
+            $('#generated-text').html('<p>Failed to generate story.</p>');
+        }
+    </script>
+</body>
+</html>
